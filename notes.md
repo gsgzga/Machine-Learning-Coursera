@@ -80,13 +80,16 @@ Machine Learning Coursera - Andrew Ng
     - [Autonomous Driving](#autonomous-driving)
 - [Week #6](#week-6)
   - [Evaluating a Learning Algorithm](#evaluating-a-learning-algorithm)
+    - [Deciding What to Try Next](#deciding-what-to-try-next)
     - [Evaluating a Hypothesis](#evaluating-a-hypothesis)
+      - [The test set error](#the-test-set-error)
     - [Model Selection and Train/Validation/Test Sets](#model-selection-and-trainvalidationtest-sets)
   - [Bias vs. Variance](#bias-vs-variance)
     - [Diagnosing Bias vs. Variance](#diagnosing-bias-vs-variance)
     - [Regularization and Bias/Variance](#regularization-and-biasvariance)
     - [Learning Curves](#learning-curves)
     - [Deciding What to Do Next Revisited](#deciding-what-to-do-next-revisited)
+      - [Diagnosing Neural Networks](#diagnosing-neural-networks)
   - [Building a Spam Classifier](#building-a-spam-classifier)
     - [Prioritizing What to Work On](#prioritizing-what-to-work-on)
     - [Error Analysis](#error-analysis)
@@ -1612,19 +1615,161 @@ A fun and historically important example of neural networks learning is using a 
 
 ## Evaluating a Learning Algorithm
 
+### Deciding What to Try Next
+
+The question is what should you then try mixing in order to improve the learning algorithm? There are many things that one can think of that could improve the performance of the learning algorithm.
+
+- Get more training examples
+- Try a smaller set of features
+- Try additional features
+- Try adding polynomial features
+- Decrease $\lambda$
+- Increase $\lambda$
+
+Unfortunately, what most people do is go by gut feeling on choosing which technique to use in improving their learning algorithm.
+
+Diagnostic is a test that one can run, to get insight into what is or isn't working with an algorithm, and which will often give one insight as to what are promising things to try to improve a learning algorithm's performance.
+
+- Diagnostics take time to implement.
+- It is a good use of time as it saves one from spending too much time on pursuing an avenue that could not be fruitful.
+
 ### Evaluating a Hypothesis
 
+Once we have done some trouble shooting for errors in our predictions by:
+
+- Getting more training examples
+- Trying smaller sets of features
+- Trying additional features
+- Trying polynomial features
+- Increasing or decreasing $\lambda$
+
+We can mvoe on to evaluate our new hypothesis.
+
+A hypothesis may have a low error for the training example but still be inaccurate (because of overfitting). Thus, to evaluate a hypothesis, given a dataset of training examples, we can split up the data into two sets: a **training set** and a **test set**. Typically, the training set consists of $70%$ of your data and the test set is the remaining $30%$.
+
+The new procedure using these two sets is then:
+
+1. Learn $\Theta$ and minimize $J_{train} (\theta)$ using the training set
+2. Compute the test set error $J_{test} (\theta)$
+
+#### The test set error
+
+1. For linear regression: $J_{test} (\Theta) = \frac{1}{2m_{test}} \sum_{i = 1}^{m_{test}} (h_{\theta} (x_{test}^{(i)}) - y_{test}^{(i)})^{2}
+2. For classification ~ Misclassification error (aka 0/1 misclassification error):
+
+$$ err(h_{\theta} (x),y) = \begin{matrix}
+1 & \text{if } h_\Theta(x) \geq 0.5\ and\ y = 0\ or\ h_\Theta(x) < 0.5\ and\ y = 1 & \end{matrix} $$
+
+$$ err(h_{\theta}) (x),y) = 0 \text{ otherwise} $$
+
+This gives us a binary $0$ and $1$ error result based on a misclassficiation. The avergagetest error for the test set is:
+
+$$ \text{Test Error } = \frac{1}{m_{test}} \sum_{i = 1}^{m_{test}} err(h_{\theta} (x_{test}^{(i)}), y_{test}^{(i)}) $$
+
+This gives us the proportion of the test data that was misclassified.
+
 ### Model Selection and Train/Validation/Test Sets
+
+Just because a learning algorithm fits a training set well, that does not mean it is a good hypothesis. It could over fit and as a result your predictions on the test set would be poor. The error of your hypothesis as measured on the data set with which you trained the parameters will be lower than the error on any other data set.
+
+Given many models with different polynomial degress, we can use a systematic approach to identify the 'best' function. In order to choose the model of your hypothesis, you can test each degree of polynomial and look at the error result.
+
+One way to break down our dataset into the three sets is:
+
+- Training set: $60%$
+- Cross validation set: $20%$
+- Test set: $20%$
+
+We can now calculate three separate error values for the threee different sets using the following method:
+
+1. Optimize the parameters in $\Theta$ using the training set for each polynomial degree.
+2. Fidn the polynomial degree $d$ with the least error using the cross validation set.
+3. Estimate the generalization error using the test set with $J_{test} (\Theta^{(d)})$, ($d$ = theta from polynomial with lower error).
+
+This way, the degree of the polynomial $d$ has not been trained using the test set.
 
 ## Bias vs. Variance
 
 ### Diagnosing Bias vs. Variance
 
+In this section we examine the relationship between the degree of the polynomial $d$ and the underfitting or overfitting of our hypothesis.
+
+- We need to distinguish whether **bias** or **variance** is the problem contributing to bad predictions.
+- High bias is underfitting and high variance is overfitting. Ideally, we need to find a golden mean between these two.
+
+The training error will tend to **decrease** as we increase the degree $d$ of the polynomial.
+
+At the same time, the cross validation error will tend to **decrease** as we increase $d$ up to a point, and then it will **increase** as $d$ is increased, forming a convex curve.
+
+**High bias (underfitting)**: both $J_{train} (\Theta)$ and $J_{CV} (\Theta)$ will be high. Also, $J_{CV} (\Theta) \approx J_{train} (\Theta)$.
+
+**High variance (overfitting)**: $J_{train} (\Theta)$ will be low and $J_{CV} (\Theta)$ will be much greater than $J_{train} (\Theta)$.
+
+This is summarized in the figure below:
+
+![Undefitting Bias and Overfitting Variance](Resources/underfittingOverfitting.png)
+
 ### Regularization and Bias/Variance
+
+**Note:** [Regularization term below and through out the video should be $\frac{\lambda}{2m} \sum_{j = 1}^{n} \theta_{j}^{2}$ and **NOT** $\frac{\lambda}{2m} \sum_{j = 1}^{m} \theta_{j}^{2}$]
+
+![Linear Regression with regularization regarding lambda](\Resources/linearRegressionRegLambda.png)
+
+In the figure above, we see that as $\lambda$ increases, our fit becoems more rigid. On the other hand, as $\lambda$ approaches $0$, we tend to over overfit the data. So how do we choose our parameter $\lambda$ to get it 'just right'? In order to choose the model and the regularization term $\lambda$, we need to:
+
+1. Create a list of lambdas (i.e. $\lambda \in \{0, 0.01, 0.02, 0.04, \ldots, 5.12, 10.24\}$)
+2. Create a set of models with different degreees or any other variants.
+3. Iterate through the $\lambda$s and for each $\lambda$ go through all the models to learn some $\Theta$.
+4. Compute the cross validation error using the learned $\Theta$ (computed with $\lambda$) on the $J_{CV} (\Theta)$ **without** regularization or $\lambda = 0$.
+5. Select the best combo that produces the lowest error on the cross validation set.
+6. Using the best combo $\Theta$ and $\lambda$, apply it on $J_{test} (\Theta)$ to see f it has a good generalization of the problem.
 
 ### Learning Curves
 
+Training an algorithm on a very few number of data points (such as $1,2 or 3$) will easily have $0$ errors because we can always find a quadratic curve that touches exactly those number of points. Hence:
+
+- As the training set gets larger, the error for a quadratic function increases.
+- The error value will plateau out after a certain $m$, or training set size.
+
+**Experiencing high bias:**
+
+- **Low training set size**: causes $J_{train} (\Theta)$ to be low and $J_{CV} (\Theta)$ to be high.
+- **Large training set size**: causes both $J_{train} (\Theta)$ and $J_{CV} (\Theta)$ to be high with $J_{train} (\Theta) = J_{CV} (\Theta)$.
+
+If a learning algorithm is suffering from **high bias**, getting more training data will not (**by itself**) help much.
+
+![High Bias in Learning Curves](Resources/highBiasLearningCurve.png)
+
+**Experiencing high variance:**
+
+- **Low training set size**: $J_{train} (\Theta)$ will be low and $J_{CV} (\Theta)$ will be high.
+- **Large training set size**: $J_{train} (\Theta)$ increases with training set size and $J_{CV} (\Theta)$ continues to decrease without leveling off. Also, $J_{train} (\Theta) < J_{CV} (\Theta)$ but the difference between them remains significant.
+
+If a learning algorithm is suffering from **high variance**, getting more training data is likely to help.
+
+![High Variance in Learning Curves](Resources/highVarianceLearningCurve.png)
+
 ### Deciding What to Do Next Revisited
+
+Our decision process can be broken down as follows:
+
+- **Getting more training examples:** Fixes high variance
+- **Trying smaller sets of features:** Fixes high variance
+- **Adding features:** Fixes high bias
+- **Adding polynomial features:** Fixes high bias
+- **Decreasing** $\mathbb{\lambda}$**:** Fixes high bias
+- **Increasing** $\mathbb{\lambda}$**:** Fixes high variance
+
+#### Diagnosing Neural Networks
+
+- A neural network with fewer parameters is **prone to underfitting**. It is also **computationally cheaper**.
+- A large neural network with more parametees is **prone to overfitting**. It is also **computationally expensive**. In this case you can use regularization (increase $\lambda$) to address the overfitting.
+
+**Model Complexity Effects:**
+
+- Lower-order polynomials (low model complexity) have high bias and low variance. In this case, the model fits poorly consistently.
+- Higher-order polynomials (high model complexity) fit the training data extremely well and the test data extremely poorly. These have low bias on the training data, but very high variance.
+- In reality, we would want to choose a model somewhere in between, that can generalize well but also fits the data reasonably well.
 
 ## Building a Spam Classifier
 
