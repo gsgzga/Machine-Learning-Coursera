@@ -1654,7 +1654,7 @@ The new procedure using these two sets is then:
 
 #### The test set error
 
-1. For linear regression: $J_{test} (\Theta) = \frac{1}{2m_{test}} \sum_{i = 1}^{m_{test}} (h_{\theta} (x_{test}^{(i)}) - y_{test}^{(i)})^{2}
+1. For linear regression: $J_{test} (\Theta) = \frac{1}{2m_{test}} \sum_{i = 1}^{m_{test}} (h_{\theta} (x_{test}^{(i)}) - y_{test}^{(i)})^{2} $
 2. For classification ~ Misclassification error (aka 0/1 misclassification error):
 
 $$ err(h_{\theta} (x),y) = \begin{matrix}
@@ -1726,7 +1726,7 @@ In the figure above, we see that as $\lambda$ increases, our fit becoems more ri
 
 ### Learning Curves
 
-Training an algorithm on a very few number of data points (such as $1,2 or 3$) will easily have $0$ errors because we can always find a quadratic curve that touches exactly those number of points. Hence:
+Training an algorithm on a very few number of data points (such as $1,2$ or $3$) will easily have $0$ errors because we can always find a quadratic curve that touches exactly those number of points. Hence:
 
 - As the training set gets larger, the error for a quadratic function increases.
 - The error value will plateau out after a certain $m$, or training set size.
@@ -1775,7 +1775,23 @@ Our decision process can be broken down as follows:
 
 ### Prioritizing What to Work On
 
+**System Design Example:**
+
+Given a data set of emails, we could construct a vector for each email. Each entry in this vector represents a word. The vector normally contains $10,000$ to $50,000$ entries gathered by finding the most frequently used words in our data set. If a word is to be found in the email, we would assign its respective entry a $1$, else if it is not found, that entry would be a $0$. Once we have all our $x$ vectors ready, we train our algorithm and finally, we could use it to classify if an email is a spam or not.
+
+![Spam Classifier](\Resources\spamClassifier.png)
+
+So how could you spend your time to improve the accuracy of this classifier?
+
+- Collect lots of data (for example "honeypot" project but doesn't always work).
+- Develop sophisticated features (for example: using email header data in spam emails).
+- Develop algorithms to process your input in different ways (recognizing misspellings in spam).
+
+It is difficult to tell which of the options will be most helpful.
+
 ### Error Analysis
+
+
 
 ## Handling Skewed Data
 
