@@ -1645,7 +1645,7 @@ Once we have done some trouble shooting for errors in our predictions by:
 
 We can mvoe on to evaluate our new hypothesis.
 
-A hypothesis may have a low error for the training example but still be inaccurate (because of overfitting). Thus, to evaluate a hypothesis, given a dataset of training examples, we can split up the data into two sets: a **training set** and a **test set**. Typically, the training set consists of $70%$ of your data and the test set is the remaining $30%$.
+A hypothesis may have a low error for the training example but still be inaccurate (because of overfitting). Thus, to evaluate a hypothesis, given a dataset of training examples, we can split up the data into two sets: a **training set** and a **test set**. Typically, the training set consists of $70\%$ of your data and the test set is the remaining $30\%$.
 
 The new procedure using these two sets is then:
 
@@ -1676,9 +1676,9 @@ Given many models with different polynomial degress, we can use a systematic app
 
 One way to break down our dataset into the three sets is:
 
-- Training set: $60%$
-- Cross validation set: $20%$
-- Test set: $20%$
+- Training set: $60\%$
+- Cross validation set: $20\%$
+- Test set: $20\%$
 
 We can now calculate three separate error values for the threee different sets using the following method:
 
@@ -1791,14 +1791,83 @@ It is difficult to tell which of the options will be most helpful.
 
 ### Error Analysis
 
+The recommended approach to solving machine learning problems is to:
 
+- Start iwth a simple algorithm, implement it quickly, and test it early on your cross validation data.
+- Plot learning curves to decide if more data, more features, etc. are likely to help.
+- Manually examine the errors on examples in the cross validation set and try to spot a trend where most of the errors were made.
+
+For example, assume that we have $500$ emails and our algorithm misclassifies a $100$ of them. We could manually analyze the $100$ emails and categorize them based on what type of emails they are. We could then try to come up with new cues and features that would help us classify these 100 emails correctly. Hence, if most of our misclassified emails are those which try to steal passwords, then we could find some features that are particular to those emails and add them to our model. We could also see how classifying each word according to its root changes our error rate:
+
+![Importance of Numerical Evaluation](Resources/numericalEvaluation.png)
+
+It is very important to get error results as a single, numerical value. Otherwise it is difficult to assess your algorithm's performance. For example if we use stemming, which is the process of treating the same word with different forms (fail/failing/failed) as one word (fail), and get a $3\%$ error rate instead of $5\%$, then we should definitely add it to our model. However, if we  try to distinguish between upper case and lower case letters and end up getting a $3.2\%$ error rate instead of $3\%$, then we should try new things, get a numerical value for our error rate, and based on our result decide whether we wan to keep the new feature or not.
 
 ## Handling Skewed Data
 
 ### Error Metrics for Skewed Classes
 
+It is important to have error metrics, a single real number evaluation metric for learning algorithms to check how well they are doing.
+
+Although there is one important case, where it is particularly tricky to come up with an appropriate error metric.
+
+This case is the case of skewed classes.
+
+Skewed classes are classes where the number of examples from one class is much higher than the number of examples of another class (ratios of $200:1$ or $99.5\%:0.5\%$). In these cases, it becomes harder to use just classification accuracy, because one can get very high classification accuracies or very low errors. Therefore it is not always clear if doing so if really improving the quality of your classifier.
+
+One useful metric for dealing with such cases is precision/recall. Depending on the predicted class and the actual class, the algorithm will produce a table like below.
+
+|                 |   | Actual Class   |                |
+|-----------------|---|----------------|----------------|
+|                 |   | 1              | 0              |
+| Predicted Class | 1 | True Positive  | False Positive |
+|                 | 0 | False Negative | True Negative  |
+
+**Precision**
+
+[Of all samples where algorithm predicted $y = 1$, what fraction actually is $1$?]
+
+$$ \frac{\text{No. True Positives}}{\text{No. Predicted Positives}} = \frac{\text{No. True Positives}}{\text{No. True Positives + No. False Positives}} $$
+
+**Recall**
+
+[Of all samples that are actually $1$, what fraction did the algorithm correctly predict $1$?]
+
+$$ \frac{\text{No. True Positives}}{\text{No. Actual Positives}} = \frac{\text{No. True Positives}}{\text{No. True Positives + No. False Positives}} $$
+
+Both high precision and high recall are a good thing for the learning algorithm.
+
+Precision and recall is defined on the convention that $y$ is equal to $1$ in the presence of the more rare class.
+
+Therefore it is not possible for an algorithm to "cheat" by predicting $1$ or $0$ all the time as high precision and high recall can't be achieved in those cases.
+
 ### Trading Off Precision and Recall
+
+For many applications, we'll want to somehow control the trade-off between precision and recall.
+
+In the example of using a logistic regression learning algorithm, which outputs $1$ if the hypothesis is $\geq 0.5$ and $0$ otherwise, sometimes the threshold should be changed as predicting one sample to be positive may be detrimental if the theshold (confidence) is low. Therefore, by increasing the threshold, the learning algorithm is more precise but has less recall as it might not pick up all the cases.
+
+In order to avoid missing too many actual positive cases (avoiding false negatives), the threshold can be decreased which will increase recall but lower precision of the learning algorithm.
+
+General idea: predict $1$ if $h_{\theta} (x) \geq \textit{threshold}$.
+
+The main question is: how to compare precision/recall numbers and how to choose a suitable one automatically?
+
+- Simple: Check the best average of $\frac{P + R}{2}$
+- Better: $F_{1}$ Score $2 \cdot \frac{PR}{P + R}$
 
 ## Using Large Data Sets
 
 ### Data For Machine Learning
+
+Another issue when training models is the amount of data to train on.
+
+Quote: "It's not who has the best algorithm that wins. It's who has the most data."
+
+Sometimes having only partial information or having only one kind of information might not be enough data to correctly predict. A useful test would be "Given the input $x$, can a human expert confidently predict $y$?".
+
+When using a learning algorithm with many parameters(e.g. logistic regression/linear regression with many features; neural network with many hidden units), the training set error will hopefully be small.
+
+Combining that with a very large training set will not let the model overfit the training data.
+
+This won't let the test set error be much different from the training set. In the end, the test set error will be small from the results above.
