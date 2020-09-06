@@ -98,6 +98,16 @@ Machine Learning Coursera - Andrew Ng
     - [Trading Off Precision and Recall](#trading-off-precision-and-recall)
   - [Using Large Data Sets](#using-large-data-sets)
     - [Data For Machine Learning](#data-for-machine-learning)
+- [Week #7](#week-7)
+  - [Large Margin Classification](#large-margin-classification)
+    - [Optimization Objective](#optimization-objective)
+    - [Large Margin Intuition](#large-margin-intuition)
+    - [Mathematics Behind Large Margin Classification](#mathematics-behind-large-margin-classification)
+  - [Kernels](#kernels)
+    - [Kernels I](#kernels-i)
+    - [Kernels II](#kernels-ii)
+  - [SVMs in Practice](#svms-in-practice)
+    - [Using An SVM](#using-an-svm)
 
 
 # Week #1
@@ -1871,3 +1881,110 @@ When using a learning algorithm with many parameters(e.g. logistic regression/li
 Combining that with a very large training set will not let the model overfit the training data.
 
 This won't let the test set error be much different from the training set. In the end, the test set error will be small from the results above.
+
+# Week #7
+
+---
+
+## Large Margin Classification
+
+### Optimization Objective
+
+There is one more algorithm that is very powerful (supervised learning algorithm) and is very widely used both within industry and academia, SVM, Support Vector Machine. SVM sometimes give a cleaner, and sometimes more powerful way of learning complex non-linear functions.
+
+In order to describe the support vector machine, starting with logistic regression and modifying it is easier.
+
+In logistic regression, we have the familiar form of the hypothesis and the sigmoid activation function.
+
+$$ h_{\theta} (x) = \frac{1}{1 + e^{-\theta^{T}x}} $$
+
+$$ z = \theta^{T}x $$
+
+If $y = 1$, we want $h_{\theta} (x) \approx 1$, $\theta^{T}x \gg 0$
+
+If $y = 0$, we want $h_{\theta} (X) \approx 0$, $\theta^{T}x \ll 0$
+
+For the overall cost function, we sum over all the chain examples. The term that a single example contributes to the overall objective function is:
+
+$$ -(y\log h_{\theta} (x) + (1 - y) \log(1 - h_{\theta} (x))) $$
+
+$$ = -y\log \frac{1}{1 + e^{-\theta^{T}x}} - (1 - y) \log(1 - \frac{1}{1 + e^{-\theta^{T}x}}) $$
+
+If $y = 1$ (want $\theta^{T} x \gg 0$), then only the first term of the overall cost is important.
+
+In order to build a SVM out of this, we want the cost function to flatten out after a point e.g. cost $= 0 \text{ for } z = 1 \to \infty$ and to hold a constant slope on the left side (negative slope). This should do something pretty similar to logistic regression, but this will give the SVM computational advantages and an easier optimization problem for us.
+
+If $y = 0$, (want $\theta^{T} x \ll 0$), then only the second term of the overall cost is important.
+
+In the same way, to replace this in the SVM, we flatten out the part on the left and we approximate a slope for the right part.
+
+We call the first one $\text{cost}_{1} (z)$ and the second one $\text{cost}_{0} (z)$.
+
+![SVMs from Logistic Regression](\Resources/svmFromLogisticRegression.png)
+
+The cost function $J(\theta)$ that we had for logistic regression is:
+
+$$ \text{min}_{\theta} \frac{1}{m} \left[ \sum_{i = 1}^{m} y^{(i)} \left(-\log h_{\theta} (x^{(i)}) \right) + (1 - y^{(i)}) \left( -\log (1 - h_{\theta} (x^{(i)})) \right) \right] + \frac{\lambda}{2m} \sum_{j = 1}^{n} \theta_{j}^{2} $$
+
+For the SVM, we replace the respective parts of the cost function with $\text{cost}_{1} (z)$ and $\text{cost}_{0} (z)$.
+
+$$ \text{min}_{\theta} \frac{1}{m} \left[ \sum_{i = 1}^{m} y^{(i)} \text{cost}_{1} (\theta^{T} x^{(i)}) + (1 - y^{(i)}) \text{cost}_{0} (\theta^{T} x^{(i)}) \right] + \frac{\lambda}{2m} \sum_{j = 1}^{n} \theta_{j}^{2} $$
+
+Due to conventiom, we rewrite the formula for SVMs a little differently:
+
+- There is no need to divide by $m$ both the cost and the regularization term, as minimizing the multiple of a function is the same as minimizing the function normally.
+- Furthermore, convention dictates that we regularize using a factor $C$, instead of $\lambda$, like so:
+
+$$ J(\theta) =  \text{min}_{\theta} C \left[ \sum_{i = 1}^{m} y^{(i)} \text{cost}_{1} (\theta^{T} x^{(i)}) + (1 - y^{(i)}) \text{cost}_{0} (\theta^{T} x^{(i)}) \right] + \frac{1}{2} \sum_{j = 1}^{n} \theta_{j}^{2} $$
+
+This is equivalent to multiplying by $C = \frac{1}{\lambda}$, and thus results in the same values when optimized. Now, when we wish to regularize more (that is, reduce overfitting), we decrease $C$, and when we wish to regularize less, (that is, reduce underfitting), we increase $C$.
+
+Finally, note that the hypothesis of the SVM is not interpreted as the probability of $y$ being $1$ or $0$ (as it is for the hypothesis of logistic regression). Instead, it ouputs either $1$ or $0$. In technical terms, it is a discriminant function.
+
+$ h_{\theta} (x) = 1 \text{ if } \theta^{T} x \geq 0 | = 0 \text{ otherwise} $
+
+### Large Margin Intuition
+
+A useful way to think about Support Vector Machines is to think of them as *Large Margin Classifiers*.
+
+If $y = 1$, we want $\theta^{T} x \geq 1$ (not just $\geq 0$).
+
+If $y = 0$, we want $\theta^{T} x \leq -1$ (not just $\leq 0$).
+
+Now when we set our constant $C$ to a very **large** value (e.g. $100,000$), our optimizing function will constrain $\theta$ such that the equation $A$ (the summation of the cost of each example) equals $0$. We impose the following constraints on $\theta$:
+
+$$ \theta^{T} x \geq 1 \text{ if } y = 1 \text{ and } \theta^{T} x \leq -1 \text{ if } y = 0 $$
+
+If $C$ is very large, we must choose $\theta$ parameters such that:
+
+$$ \sum_{i = 1}^{m} y^{(i)} \text{cost}_{1}(\theta^{T} x) + (1 - y^{(i)}) \text{cost}_{0} (\theta^{T} x) = 0 $$
+
+This reduces our cost function to:
+
+$$  J(\theta) = C \cdot 0 + \frac{1}{2} \sum_{j = 1}^{n} \Theta_{j}^{2} = \frac{1}{2} \sum_{j = 1}^{n} \Theta_{j}^{2} $$
+
+Recall the decision boundary from logistic regression (the line separating the positive and negative examples). In SVMs, the decision boundary has the special property that it is **as far away as possible** from both the positive and negative examples.
+
+The distance of the decision boundary to the nearest example is called the **margin**. Since SVMs maximize this margin, it is often called a *Large Margin Classifier*.
+
+The SVM will separate the negative and positive examples by a **large margin**.
+
+This large margin is only achieved when $\bold{C}$ **is very large**.
+
+Data is **linearly separable** when a **straight line** can separate the positive and negative examples.
+
+If we have **outlier** examples that we don't want to affect the decision boundary, then we can **reduce** $C$.
+
+Increasing and decreasing $C$ is similar to respectively decreasing and increasing $\lambda$, and can simplify our decision boundary.
+
+### Mathematics Behind Large Margin Classification
+
+## Kernels
+
+### Kernels I
+
+### Kernels II
+
+## SVMs in Practice
+
+### Using An SVM
