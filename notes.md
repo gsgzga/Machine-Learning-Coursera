@@ -1487,7 +1487,7 @@ The capital-delta matrix $D$ is used as an "accumulator" to add up our values as
 
 Recall that the cost function for a neural network is:
 
-$$ J(\theta) = - \frac{1}{m} \sum_{t=1}^m\sum_{k=1}^K \left[ y^{(t)}_k \ \log (h_\Theta (x^{(t)}))_k + (1 - y^{(t)}_k)\ \log (1 - h_\Theta(x^{(t)})_k)\right] + \frac{\lambda}{2m}\sum_{l=1}^{L-1} \sum_{i=1}^{s_l} \sum_{j=1}^{s_l+1} ( \Theta_{j,i}^{(l)})^{2} $$
+$$ J(\theta) = - \frac{1}{m} \sum_{t = 1}^{m} \sum_{k = 1}^{K} \left[ y_{k}^{(t)} \ \log (h_\theta (x^{(t)}))_k + (1 - y_{k}^{(t)})\log (1 - h_\theta(x^{(t)})_k)\right] + \frac{\lambda}{2m} \sum_{l = 1}^{L - 1} \sum_{i = 1}^{s_{l}} \sum_{j = 1}^{s_{l} + 1} ( \theta_{j,i}^{(l)})^{2} $$
 
 If we consider simple non-multiclass classification ($k = 1$) and disregard regularization, the cost is computed with:
 
@@ -1509,7 +1509,7 @@ In the image above, to calculate $\delta_{2}^{(2)}$, we multiply the weights $\T
 
 With neural networks, we are working with sets of matrices:
 
-$$  \Theta^{(1)}, \Theta^{(2)}, \Theta^{(3)}, \dots \newline D^{(1)}, D^{(2)}, D^{(3)}, \dots $$
+$$  \Theta^{(1)}, \Theta^{(2)}, \Theta^{(3)}, \dots \\ D^{(1)}, D^{(2)}, D^{(3)}, \dots $$
 
 In order to use optimizing functions such as "fminunc()", we will want to "unroll" all the elements and put them into one long vector:
 
@@ -1979,12 +1979,150 @@ Increasing and decreasing $C$ is similar to respectively decreasing and increasi
 
 ### Mathematics Behind Large Margin Classification
 
+**Vector Inner Product**
+
+Say we have two vectors, $u$ and $v$:
+
+$$ u = \begin{bmatrix} u_1 \\ u_2 \end{bmatrix} v = \begin{bmatrix} v_1 \\ v_2 \end{bmatrix} $$
+
+The **length of vector v** is denoted $||v||$, and it describes the line on a graph from origin $(0, 0)$ to $(v_{1}, v_{2})$.
+
+The length of vector $v$ can be calculated with $\sqrt{v_{1}^{2} + v_{2}^{2}}$ by the Pythagorean theorem.
+
+The **projection** of vector $v$ onto vector $u$ is found by taking a right angle from $u$ to the end of $v$, creating a right triangle.
+
+- $p =$ length of projection of $v$ onto the vector $u$
+- $u^{T}v = p \cdot ||u||$
+
+Note that $u^{T}v = ||u|| \cdot ||v|| \cos{\theta}$ where $\theta$ is the angle between $u$ and $v$. Also, $p = ||v||\cos{\theta}$. If you substitute $p$ for $||v||\cos{\theta}$, you get $u^{T}v = p \cdot ||u||$.
+
+So the product $u^{T}v$ is equal to the length of the projection times the length of vector $u$.
+
+In our example, since $u$ and $v$ are vectors of the same length, $u^{T}v = v^{T}u$.
+
+If the **angle** between the lines for $v$ and $u$ is **greater than 90 degrees**, then the projection $p$ will be **negative**.
+
+$$ \min_\Theta \frac{1}{2}\sum_{j = 1}^{n} \Theta_{j}^{2} \\ = \frac{1}{2}(\Theta_1^2 + \Theta_2^2 + \dots + \Theta_n^2) \\ = \frac{1}{2}(\sqrt{\Theta_1^2 + \Theta_2^2 + \dots + \Theta_n^2})^2 \\ = \frac{1}{2}||\Theta ||^2 $$
+
+We can use the same rules to rewrite $\Theta^{T} x^{(i)}$:
+
+$$ \Theta^{T} x^{(i)} = p^{(i)} \cdot ||\Theta|| = \Theta_{1}x_{1}^{(i)} + \Theta_{2}x_{2}^{(i)} + \cdots + \Theta_{n}x_{n}^{(i)} $$
+
+So we now have a new **optimization objective** by substituting $p^{(i)} \cdot ||\Theta||$ in for $\Theta^{T} x^{(i)}$:
+
+- If $y = 1$, we want $p^{(i)} \cdot ||\Theta|| \geq 1$
+- If $y = 0$, we want $p^{(i)} \cdot ||\Theta|| \leq -1$
+
+The reason this causes a "large margin" is because: the vector for $\Theta$ is perpendicular to the decision boundary. In order for our optimization objective (above) to hold true, we need the absolute value of our projections $p^{(i)}$ to be as large as possible.
+
+If $\Theta_{0} = 0$, then all our decision boundaries will intersect $(0,0)$. If $\Theta_{0} \neq 0$, the support vector machine will still find a large margin for the decision boundary.
+
 ## Kernels
 
 ### Kernels I
 
+**Kernels** allow us to make complex, non-linear classifiers using Support Vector Machines.
+
+Given $x$, compute new feature depending on proximity to landmarks $l^{(1)}, l^{(2)}, l^{(3)}$.
+
+To do this, we find the "similarity" of $x$ and some landmark $l^{(i)}$:
+
+$$ f_{i} = \textit{similarity}(x, l^{(i)}) = \exp(-\frac{||x - l^{(i)}||^{2}}{2\sigma^{2}}) $$
+
+This "similarity" function is called a **Gaussian Kernel**. It is a specific example of a kernel. This similarity function can also be written as follows:
+
+$$ f_{i} = \textit{similarity}(x, l^{(i)}) = \exp(-\frac{\sum_{j = 1}^{n} (x_{j} - l_{j}^{(i)})^{2}}{2\sigma^{2}}) $$
+
+There are a couple properties of the similarity function:
+
+If $x \approx l^{(i)}$, then $f_{i} = \exp(-\frac{\approx0^{2}}{2\sigma^{2}}) \approx 1 $
+
+If $x$ is far from $l^{(i)}$, then $f_{i} = \exp(-\frac{(\textit{large number})^{2}}{2\sigma^{2}}) \approx 0$
+
+In other word, if $x$ and the landmark are close, then the similarity will be close to $1$, and if $x$ and the landmark are far away from each other, the similarity will be close to $0$.
+
+Each landmark gives us the features in our hypothesis:
+
+$$ l^{(1)} \rightarrow f_{1} \\ l^{(2)} \rightarrow f_{2} \\ l^{(3)} \rightarrow f_{3} \\\dots \\ h_\Theta(x) = \Theta_{1}f_{1} + \Theta_{2}f_{2} + \Theta_{3}f_{3} + \dots $$
+
+$\sigma^{2}$ is a parameter of the Gaussian Kernel, and it can be modified to increase or decrease the **drop-off** of our feature $f_{i}$. Combined with looking at the values inside $\Theta$, we can choose these landmarks to get the general shape of the decision boundary.
+
 ### Kernels II
+
+One way to get the landmarks is to put them in the **exact same** locations as all the training examples. This gives us $m$ landmarks, with one landmark per training example.
+
+Given example $x$:
+
+$$ f_{1} = \textit{similarity}(x, l^{(1)}), f_{2} \textit{similarity}(x, l^{(2)}), f_{3} = \textit{similarity}(x, l^{(3)})$$, and so on.
+
+This gives us a "feature vector", $f_{(i)}$ of all our features for example $x_{(i)}$. We may also set $f_{0} = 1$ to correspond with $\Theta_{0}$. Thus given training example $x_{(i)}$:
+
+$$ x^{(i)} \to \left[ f_{1}^{(i)} = \textit{similarity}(x^{(i)}, l^{(1)}), f_{2}^{(i)} = \textit{similarity}(x^{(i)}, l^{(2)}), f_{m}^{(i)} = \textit{similarity}(x^{(i)}, l^{(m)}) \right] $$
+
+Now to get the parameters $\Theta$ we can use the SVM minimization algorithm but with $f^{(i)}$ substituted in for $x^{(i)}$:
+
+$$ \text{min}_{\Theta} C \sum_{i = 1}^{m} y^{(i)} \text{cost}_{1} (\Theta^{T} f^{(i)}) + (1 - y^{(i)}) \text{cost}_{0} (\Theta^{T} f^{(i)}) + \frac{1}{2} \sum_{j = 1}^{n} \Theta_{j}^{2} $$
+
+In this case $n$ and $m$ represent the same number/size of the set of training examples and the set of features.
+
+The last term is sometimes implemented differently:
+
+$$ \sum_{j = 1} \Theta_{j}^{2} \ \Theta^{T} \Theta \approx \Theta^{T} M \Theta $$
+
+SVM implementations use the last technique, where $M$ is a matrix that depends on the kernel used. This gives a slightly different (rescale) distance metric. This mathematical detail allows SVM software to run more efficiently and scale to much bigger training sets.
+
+Using kernels to generate $f(i)$ is not exclusive to SVMs and may also be applied to logistic regression. However, because of computational optimizations on SVMs, kernels combined with SVMs is much faster than with other algorithms, so kernels almost always found combined only with SVMs.
+
+**Choosing SVM Parameters**
+
+Choosing $C$ (recall that $C$ = \frac{1}{\lambda}):
+
+- If $C$ is large, then we get higher variance/lower bias
+- If $C$ is small, then we get lower variance/higher bias
+
+The other parameter we must choose is $\sigma^{2}$ from the Gaussian Kernel function.
+
+With a large $\sigma^{2}$, the features $f(i)$ vary more smoothly, causing higher bias and lower variance.
+
+With a small $\sigma^{2}$, the features $f(i)$ vary less smoothly, causing lower bias and higher variance.
 
 ## SVMs in Practice
 
 ### Using An SVM
+
+There are lots of good SVM libraries already written. A. Ng often uses 'liblinear' and 'libsvm'. In practical application, you should use one of these libraries rather than rewrite the functions.
+
+In practical application, the choices you do need to make are:
+
+- Choice of parameter $C$
+- Choice of kernel (similarity function)
+- No kernel ("linear" kernel) -- gives standard linear classifier
+- Choose when $n$ is large and when $m$ is small
+- Gaussian Kernel (above) -- need to choose $\sigma^{2}$
+- Choose when $n$ is small and $m$ is large
+
+The library may ask you to provide the kernel function.
+
+**Note:** do perform feature scaling before using the Gaussian Kernel
+
+**Note:** not all similarity functions are valid kernels. They must satisfy "Mercer's Theorem" which guarantees that the SVM package's optimizations run correctly and do not diverge.
+
+You want to train $C$ and the parameters for the kernel function using the training and cross-validation datasets.
+
+Many off-the-shelf kernels available:
+- Polynomial kernel: $k(x, l) = (x^{T}l + C)^{d}$
+- More esoteric: String kernel, chi-square kernel, histogram intersection kernel, ...
+
+**Multi-class Classification**
+
+Many SVM libraries have multi-class classification built-in. You can use the *one-vs-all* method just like we did for logistic regression, where $y \in 1, 2, 3, \ldots, K$ with $\Theta^{(1)}, \Theta^{(2)}, \ldots, \Theta^{(k)}$. We pick class $i$ with the largest $(\Theta^{(i)})^{T}x$.
+
+**Logistic Regression vs. SVMs**
+
+If $n$ is large (relative to $m$), then use logistic regression, or SVM without a kernel (the "linear kernel"). If $n$ is small and $m$ is intermediate, then use SVM with a Gaussian Kernel. If $n$ is small and $m$ is large, then manually create/add more features, then use logistic regression or SVM without a kernel.
+
+In the first case, we don't have enough examples to need a complicated polynomial hypothesis. In the second example, we have enough examples that we may need a complex non-linear hypothesis. In the last case, we want to increase our features so that logistic regression becomes applicable.
+
+**Note:** a neural network is likely to work well for any of these situations, but may be slower to train.
+
+Additional Reference: "[An Idiot's Guide to Support Vector Machines](http://web.mit.edu/6.034/wwwbob/svm-notes-long-08.pdf)"
