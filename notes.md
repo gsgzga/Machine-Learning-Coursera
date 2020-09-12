@@ -2233,7 +2233,7 @@ If you have a cluster centroid with **0 points** assigned to it, you can randoml
 
 After a number of iterations the algorithm will **converge**, where new iterations do not affect the clusters.
 
-Note on non-separated clusters: some datasets have no real inner separation or natural structure. K-means can still evenly segment your data into $K$ subsets, so can still be useful in this case.
+Note on non-separated clusters: some datasets have no real inner separation (population statistics) or natural structure. K-means can still evenly segment your data into $K$ subsets, so can still be useful in this case.
 
 #### Optimization Objective
 
@@ -2372,10 +2372,112 @@ The mathematical proof for the following procedure is complicated and beyond the
 
 1. Compute "covariance matrix"
 
+$$ \sum = \frac{1}{m} \sum_{i = 1}^{m} (x^{(i)})(x^{(i)})^{T} $$
+
+This can be vectorized in Octave as:
+
+```matlab
+Sigma = (1 / m) * X' * X;
+```
+
+We denote the covariance matrix with a capital sigma (which happens to be the same symbol for summation, confusingly -- they represent entirely different things).
+
+Note that $x^{(i)}$ is an $n \times 1$ vector, $(x^{(i)})^{T}$ is an $1 \times n$ vector and $X$ is a $m \times n$ (row-wise stored examples). The product of those will be an $n \times n$ matrix, which are the dimensions of $\Sigma$.
+
+2. Compute "eigenvectors" of covariance matrix $\Sigma$
+
+```matlab
+[U, S, V] = svd(Sigma);
+```
+
+svd() is the 'singular value decomposition', a built-in Octave function.
+
+What we actually want out of svd() is the 'U' matrix of the Sigma covariance matrix: $\mathbb{U} \in R^{n \times n}$. $\mathbb{U}$ contains $u^{(1)}, \ldots, u^{(n)}$, which is exactly what we want.
+
+3. Take the first $k$ columns of the $\mathbb{U}$ matrix and compute $z$
+
+We'll assign the first $k$ columns of $\mathbb{U}$ to a variable called 'Ureduce'. This will be an $n \times k$ matrix. We compute $z$ with:
+
+$$ z^{(i)} = \textit{Ureduce}^{T} \cdot x^{(i)} $$
+
+*Ureduce*$Z^{T}$ will have dimensions $k \times n$ while $x^{(i)}$ will have dimensions $n \times 1$. The product $\textit{Ureduce}^{T} \cdot x^{(i)}$ will have dimensions $k \times 1$.
+
+To summarize, the whole algorithm in Octave is roughly:
+
+```matlab
+Sigma = (1/m) * X' * X; % compute the covariance matrix
+[U,S,V] = svd(Sigma);   % compute our projected directions
+Ureduce = U(:,1:k);     % take the first k directions
+Z = X * Ureduce;        % compute the projected data points
+```
+
 ### Applying PCA
 
 #### Reconstruction from Compressed Representation
 
+If we use PCA to compress our data, how can we uncompress our data, or go back to out original number of features?
+
+To go from $1$-dimension back to $2$D we do: $z \in R \to R^{2}$.
+
+We can do this with the equation: $x_{approx}^{(1)} - U_{reduce} \cdot z^{(1)}$.
+
+Note that we can only get approximations of our original data.
+
+Note: It turns out that the $U$ matrix has the special property that it is a Unitary Matrix. One of the special properties of a Unitary Matrix is:
+
+$U^{-1} = U*$ where the "*" means "conjugate transpose".
+
+Since we are dealing with real numbers here, this is equivalent to:
+
+$U^{-1} = U^{T}$
+
+So we could compute the inverse and use that, but it would be a waste of energy and compute cycles.
+
 #### Choosing the Number of Principal Components
 
+How do we choose $k$, also called the *number of principal components*? Recall that $k$ is the dimension we are reducing to.
+
+One way to choose $k$ is by using the following formula:
+
+- Given the average squared projection error: $\frac{1}{m} \sum_{i = 1}^{m} || x^{(i)} - x_{approx}^{(i)} ||^{2}$
+- Also given the total variation in the data: $\frac{1}{m} \sum_{i = 1}^{m} || x^{(i)} ||^{2}$
+- Choose $k$ to be the smallest value such that: $\frac{\frac{1}{m} \sum_{i = 1}^{m} || x^{(i)} - x_{approx}^{(i)} ||^{2}}{\frac{1}{m} \sum_{i = 1}^{m} || x^{(i)} ||^{2}} \leq 0.01$
+
+In other words, the squared projection error divided by the total variation should be less than one percent, so that **99% of the variance is retained.
+
+**Algorithm for choosing **$\mathbb{k}$
+
+1. Try PCA with $k = 1, 2, \ldots$
+2. Compute $U_{reduce}, z, x$
+3. Check the formula given above that $99\%$ of the variance is retained. If not, go to step one and increase $k$.
+
+This procedure would actually be horribly inefficient. In Octave, we will call svd():
+
+```matlab
+[U, S, V] = svd(Sigma)
+```
+
+Which gives us a matrix $S$. We can actually check for $99\%$ of retained variance using the $S$ matrix as follows:
+
+$$ \frac{\sum_{i = 1}^{k} S_{ii}}{\sum_{i = 1}^{n} S_{ii}} \geq 0.99 $$
+
 #### Advice for Applying PCA
+
+The most common use of PCA is to speed up supervised learning.
+
+Given a training set with a large number of features (e.g. $x^{(1)}, \ldots, x^{(m)} \in R^{10000}$) we can use PCA to reduce the number of features in each example of the training set (e.g. $z^{(1)}, \ldots, z^{(m)} \in R^{1000}$).
+
+Note that we should define the PCA reduction from $x^{(i)}$ to $z^{(i)}$ only on the training set and not on the cross-validation or test sets. You can apply the mapping $z^{(i)}$ to your cross-validation and test sets after it is defined on the training set.
+
+Applications 
+
+- Compressions
+- Reduce space of data
+- Speed up algorithm
+- Visualization of data
+
+Choose $k = 2$ or $k =3$
+
+**Bad use of PCA:** trying to prevent overfitting. We might think that reducing the features with PCA would be an effective way to address overfitting. It might work, but is not recommended because it does not consider the values of our results $y$. Using just regularization will be at least as effective.
+
+Don't assume you need to do PCA. **Try your full machine learning algorithm without PCA first.** Then use PCA if you find that you need it.
