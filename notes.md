@@ -2320,7 +2320,7 @@ Example: hundreds of features related to a country's economic system may all be 
 
 ### Principal Component Analysis
 
-The most popular dimensionality reduction algorithm is *Principal Component Analysis* (PCA)
+The most popular dimensionality reduction algorithm is *Principal Component Analysis* (PCA).
 
 #### Principal Component Analysis Problem Formulation
 
@@ -2398,9 +2398,9 @@ What we actually want out of svd() is the 'U' matrix of the Sigma covariance mat
 
 We'll assign the first $k$ columns of $\mathbb{U}$ to a variable called 'Ureduce'. This will be an $n \times k$ matrix. We compute $z$ with:
 
-$$ z^{(i)} = \textit{Ureduce}^{T} \cdot x^{(i)} $$
+$$ z^{(i)} = U_{reduce}^{T} \cdot x^{(i)} $$
 
-*Ureduce*$Z^{T}$ will have dimensions $k \times n$ while $x^{(i)}$ will have dimensions $n \times 1$. The product $\textit{Ureduce}^{T} \cdot x^{(i)}$ will have dimensions $k \times 1$.
+$U_{reduce}*Z^{T}$ will have dimensions $k \times n$ while $x^{(i)}$ will have dimensions $n \times 1$. The product $\textit{Ureduce}^{T} \cdot x^{(i)}$ will have dimensions $k \times 1$.
 
 To summarize, the whole algorithm in Octave is roughly:
 
@@ -2419,7 +2419,7 @@ If we use PCA to compress our data, how can we uncompress our data, or go back t
 
 To go from $1$-dimension back to $2$D we do: $z \in R \to R^{2}$.
 
-We can do this with the equation: $x_{approx}^{(1)} - U_{reduce} \cdot z^{(1)}$.
+We can do this with the equation: $x_{approx}^{(1)} = U_{reduce} \cdot z^{(1)}$.
 
 Note that we can only get approximations of our original data.
 
@@ -2443,9 +2443,9 @@ One way to choose $k$ is by using the following formula:
 - Also given the total variation in the data: $\frac{1}{m} \sum_{i = 1}^{m} || x^{(i)} ||^{2}$
 - Choose $k$ to be the smallest value such that: $\frac{\frac{1}{m} \sum_{i = 1}^{m} || x^{(i)} - x_{approx}^{(i)} ||^{2}}{\frac{1}{m} \sum_{i = 1}^{m} || x^{(i)} ||^{2}} \leq 0.01$
 
-In other words, the squared projection error divided by the total variation should be less than one percent, so that **99% of the variance is retained.
+In other words, the squared projection error divided by the total variation should be less than one percent, so that $99\%$ of the variance is retained.
 
-**Algorithm for choosing **$\mathbb{k}$
+**Algorithm for choosing** $\mathbb{k}$
 
 1. Try PCA with $k = 1, 2, \ldots$
 2. Compute $U_{reduce}, z, x$
