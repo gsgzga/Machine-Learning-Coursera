@@ -147,6 +147,15 @@
     - [Low Rank Matrix Factorization](#low-rank-matrix-factorization)
       - [Vectorization: Low Rank Matrix Factorization](#vectorization-low-rank-matrix-factorization)
       - [Implementational Detail: Mean Normalization](#implementational-detail-mean-normalization)
+  - [Week #10](#week-10)
+    - [Gradient Descent with Large Datasets](#gradient-descent-with-large-datasets)
+      - [Learning with Large Datasets](#learning-with-large-datasets)
+      - [Stochastic Gradient Descent](#stochastic-gradient-descent)
+      - [Mini-Batch Gradient Descent](#mini-batch-gradient-descent)
+      - [Stochastic Gradient Descent Convergence](#stochastic-gradient-descent-convergence)
+    - [Advanced Topics](#advanced-topics)
+      - [Online Learning](#online-learning)
+      - [Map Reduce and Data Parallelism](#map-reduce-and-data-parallelism)
 
 ## Week #1
 
@@ -2807,3 +2816,23 @@ Now we just slightly modify the linear regression prediction to include the mean
 $$ (\theta^{(j)})^{T}x^{(i)} + \mu_{i} $$
 
 Now, for a new user, the initial predicted values will be equal to the $\mu$ term instead of simply being initialized to zero, which is more accurate.
+
+## Week #10
+
+---
+
+### Gradient Descent with Large Datasets
+
+#### Learning with Large Datasets
+
+#### Stochastic Gradient Descent
+
+#### Mini-Batch Gradient Descent
+
+#### Stochastic Gradient Descent Convergence
+
+### Advanced Topics
+
+#### Online Learning
+
+#### Map Reduce and Data Parallelism
